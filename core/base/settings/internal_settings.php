@@ -1,5 +1,7 @@
 <?php
 
+use core\base\exceptions\RouteException;
+
 defined('DOK_ACCESS') or die('ACCESS DENIED');
 
 const TEMPLATE = 'templates/default/';
@@ -22,3 +24,12 @@ const USER_CSS_JS = [
     'styles' => [],
     'scripts' => [],
 ];
+
+spl_autoload_register(function ($className)
+{
+    $className = str_replace('\\', '/', $className);
+
+    if(!@include_once $className . '.php') {
+        throw new RouteException('Не верное имя файла для подключения - ' . $className);
+    }
+});

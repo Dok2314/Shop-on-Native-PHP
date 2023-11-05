@@ -2,15 +2,14 @@
 
 namespace core\base\controllers;
 
+use core\base\settings\Settings;
+
 class RouteController
 {
     private static $instance;
 
-    private function __construct()
-    {
-    }
 
-    private function __clone(): void
+    public function route()
     {
     }
 
@@ -23,8 +22,14 @@ class RouteController
         return self::$instance = new self;
     }
 
-    public function route()
+    private function __clone(): void
     {
+    }
 
+    private function __construct()
+    {
+        $s = Settings::get('routes');
+
+        exit();
     }
 }

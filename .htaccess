@@ -1,1 +1,9 @@
-php_flag magic_quotes_gpc Off
+AddDefaultCharset utf-8
+DirectoryIndex index.php
+
+RewriteEngine on
+
+# Перенаправить на index.php все запросы, которые не являются favicon.ico
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !^/favicon\.ico [NC]
+RewriteRule ^(.*) index.php [L]

@@ -33,13 +33,16 @@ class Settings
         ],
     ];
 
-    private function __construct()
-    {
-    }
+    private $testProp = [
+        'test' => [
+            'key' => 'val'
+        ]
+    ];
 
-    private function __clone()
-    {
-    }
+    private array $templateArr = [
+        'text' => ['name', 'phone', 'address'],
+        'textarea' => ['content', 'keywords'],
+    ];
 
     public static function getInstance()
     {
@@ -53,5 +56,52 @@ class Settings
     public static function get($property)
     {
         return self::getInstance()->$property;
+    }
+
+    public function clueProperties($childSettingsClassName)
+    {
+        $baseProperties = [];
+
+        foreach ($this as $basePropName => $basePropVal) {
+            $childProps = $childSettingsClassName::get($basePropName);
+
+            if(is_array($childProps) && is_array($basePropVal)) {
+                $baseProperties[$basePropName] = $this->arrayMergeRecursive($basePropVal, $childProps);
+            }
+
+            if(!$childProps) $baseProperties[$basePropName] = $basePropVal;
+        }
+
+        return $baseProperties;
+    }
+
+    protected function arrayMergeRecursive(...$arrays)
+    {
+        $base = array_shift($arrays);
+
+        foreach ($arrays as $array) {
+            foreach ($array as $key => $value) {
+                if(isset($base[$key]) && is_array($value) && is_array($base[$key])) {
+                    $base[$key] = $this->arrayMergeRecursive($base[$key], $value);
+                } else {
+                    if(is_int($key)) {
+                        if(!in_array($value, $base)) $base[] = $value;
+                        continue;
+                    }
+
+                    $base[$key] = $value;
+                }
+            }
+        }
+
+        return $base;
+    }
+
+    private function __construct()
+    {
+    }
+
+    private function __clone()
+    {
     }
 }

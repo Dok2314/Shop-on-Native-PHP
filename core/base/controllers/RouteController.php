@@ -3,6 +3,7 @@
 namespace core\base\controllers;
 
 use core\base\settings\Settings;
+use core\base\settings\ShopSettings;
 
 class RouteController
 {
@@ -28,7 +29,9 @@ class RouteController
 
     private function __construct()
     {
-        $s = Settings::get('routes');
+        $s = Settings::getInstance();
+        $s1 = ShopSettings::getInstance();
+        dd($s, $s1);
 
         exit();
     }

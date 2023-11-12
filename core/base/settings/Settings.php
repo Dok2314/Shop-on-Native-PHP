@@ -58,7 +58,7 @@ class Settings
         return self::getInstance()->$property;
     }
 
-    public function clueProperties($childSettingsClassName)
+    public function clueProperties($childSettingsClassName): array
     {
         $baseProperties = [];
 

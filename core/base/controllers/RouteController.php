@@ -31,7 +31,6 @@ class RouteController
     {
         $s = Settings::getInstance();
         $s1 = ShopSettings::getInstance();
-        dd($s, $s1);
 
         exit();
     }

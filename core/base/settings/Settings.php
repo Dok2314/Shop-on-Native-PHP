@@ -8,7 +8,7 @@ class Settings
 
     private array $routes = [
         'admin' => [
-            'name' => 'admin',
+            'alias' => 'admin',
             'path' => 'core/admin/controllers/',
             'hrUrl' => false,
         ],
@@ -23,7 +23,7 @@ class Settings
             'path' => 'core/user/controllers/',
             'hrUrl' => true,
             'routes' => [
-
+                'albom' => 'site/input/output'
             ],
         ],
         'default' => [

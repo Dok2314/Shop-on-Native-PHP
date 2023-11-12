@@ -9,7 +9,7 @@ class ShopSettings
 
     private array $routes = [
         'admin' => [
-            'name' => 'sudo',
+            'alias' => 'sudo',
         ],
         'vasya' => [
             'name' => 'vasya',

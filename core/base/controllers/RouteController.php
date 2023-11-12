@@ -92,27 +92,7 @@ class RouteController
 
             $this->createRoute($routeType, $url);
 
-            if(isset($url[1])) {
-                $count = count($url);
-                $key = '';
-
-                if(!$hrlUrl) {
-                    $i = 1;
-                } else {
-                    $this->parameters['alias'] = $url[1];
-                    $i = 2;
-                }
-
-                for (; $i < $count; $i++) {
-                    if(!$key) {
-                        $key = $url[$i];
-                        $this->parameters[$key] = '';
-                    } else {
-                        $this->parameters[$key] = $url[$i];
-                        $key = '';
-                    }
-                }
-            }
+            $this->setParameters($url, $hrlUrl);
         } else {
             try {
                 throw new \Exception('Некорректная директория сайта!');
@@ -142,5 +122,30 @@ class RouteController
 
         $this->inputMethod = $route[1] ?? $this->routes['default']['inputMethod'];
         $this->outputMethod = $route[2] ?? $this->routes['default']['outputMethod'];
+    }
+
+    private function setParameters(array $url, bool $hrlUrl): void
+    {
+        if(isset($url[1])) {
+            $count = count($url);
+            $key = '';
+
+            if(!$hrlUrl) {
+                $i = 1;
+            } else {
+                $this->parameters['alias'] = $url[1];
+                $i = 2;
+            }
+
+            for (; $i < $count; $i++) {
+                if(!$key) {
+                    $key = $url[$i];
+                    $this->parameters[$key] = '';
+                } else {
+                    $this->parameters[$key] = $url[$i];
+                    $key = '';
+                }
+            }
+        }
     }
 }

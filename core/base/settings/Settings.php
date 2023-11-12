@@ -53,48 +53,50 @@ class Settings
         return self::$instance = new self;
     }
 
-    public static function get($property)
+    public static function getSettingsByPropName($propName)
     {
-        return self::getInstance()->$property;
+        if(property_exists(self::getInstance(), $propName)) {
+            return self::getInstance()->$propName;
+        }
     }
 
-    public function clueProperties($childSettingsClassName): array
+    public function clueProperties($childClassName): array
     {
-        $baseProperties = [];
+        $props = [];
 
         foreach ($this as $basePropName => $basePropVal) {
-            $childProps = $childSettingsClassName::get($basePropName);
+            $childPropVal = $childClassName::getSettingsByPropName($basePropName);
 
-            if(is_array($childProps) && is_array($basePropVal)) {
-                $baseProperties[$basePropName] = $this->arrayMergeRecursive($basePropVal, $childProps);
+            if(is_array($basePropVal) && is_array($childPropVal)) {
+                $props[$basePropName] = $this->arrayMergeRecursive($basePropVal, $childPropVal);
             }
 
-            if(!$childProps) $baseProperties[$basePropName] = $basePropVal;
+            if(!$childPropVal) $props[$basePropName] = $basePropVal;
         }
 
-        return $baseProperties;
+        return $props;
     }
 
-    protected function arrayMergeRecursive(...$arrays)
+    protected function arrayMergeRecursive(...$props)
     {
-        $base = array_shift($arrays);
+        $baseProps = array_shift($props);
 
-        foreach ($arrays as $array) {
-            foreach ($array as $key => $value) {
-                if(isset($base[$key]) && is_array($value) && is_array($base[$key])) {
-                    $base[$key] = $this->arrayMergeRecursive($base[$key], $value);
+        foreach ($props as $childProp) {
+            foreach ($childProp as $childPropKey => $childPropVal) {
+                if(isset($baseProps[$childPropKey]) && is_array($childPropVal) && is_array($baseProps[$childPropKey])) {
+                    $baseProps[$childPropKey] = $this->arrayMergeRecursive($baseProps[$childPropKey], $childPropVal);
                 } else {
-                    if(is_int($key)) {
-                        if(!in_array($value, $base)) $base[] = $value;
+                    if(is_int($childPropKey)) {
+                        if(!in_array($childPropVal, $baseProps)) $baseProps[] = $childPropVal;
                         continue;
                     }
 
-                    $base[$key] = $value;
+                    $baseProps[$childPropKey] = $childPropVal;
                 }
             }
         }
 
-        return $base;
+        return $baseProps;
     }
 
     private function __construct()

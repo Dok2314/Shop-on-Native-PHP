@@ -29,16 +29,16 @@ class ShopSettings
 
         self::$instance = new self;
         self::$instance->baseSettings = Settings::getInstance();
-        $baseProperties = self::$instance->baseSettings->clueProperties(self::class);
-        self::$instance->setProperties($baseProperties);
+        $properties = self::$instance->baseSettings->clueProperties(self::class);
+        self::$instance->setProperties($properties);
 
         return self::$instance;
     }
 
-    public static function get($property)
+    public static function getSettingsByPropName($propName)
     {
-        if(property_exists(self::getInstance(), $property)) {
-            return self::getInstance()->$property;
+        if(property_exists(self::getInstance(), $propName)) {
+            return self::getInstance()->$propName;
         }
     }
 

@@ -42,8 +42,8 @@ class RouteController
         $addressStr = $_SERVER['REQUEST_URI'];
         $phpSelf = $_SERVER['PHP_SELF'];
 
-        $lastSlashPosition = strrpos($addressStr, '/');
-        if ($lastSlashPosition === strlen($addressStr) - 1 && $lastSlashPosition !== 0) {
+        $lastSlashPosition = mb_strrpos($addressStr, '/');
+        if ($lastSlashPosition === mb_strlen($addressStr) - 1 && $lastSlashPosition !== 0) {
             // $this->redirect(rtrim($addressStr, '/'), 301);
         }
 

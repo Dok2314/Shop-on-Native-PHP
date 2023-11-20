@@ -9,7 +9,7 @@ class RouteController
 {
     const ADMIN_ROUTE_TYPE = 'admin';
     const USER_ROUTE_TYPE = 'user';
-    const PLUGINS_ROUTE_TYPE = 'user';
+    const PLUGINS_ROUTE_TYPE = 'plugins';
 
     private static $instance;
 
@@ -57,7 +57,7 @@ class RouteController
                 // ADMIN PART
                 $url = explode('/', substr($addressStr, strlen(PATH . $this->routes['admin']['alias']) + 1));
 
-                if (isset($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0])) {
+                if (!empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0])) {
                     // PLUGINS PART
                     $plugin = array_shift($url);
 
@@ -93,7 +93,6 @@ class RouteController
             $this->createRoute($routeType, $url);
 
             $this->setParameters($url, $hrlUrl);
-            exit();
         } else {
             try {
                 throw new \Exception('Некорректная директория сайта!');
@@ -101,21 +100,20 @@ class RouteController
                 exit($e->getMessage());
             }
         }
-
-        exit();
     }
 
     private function createRoute(string $routeType, array $url): void
     {
         $route = [];
+        $controllerAlias = $url[0] ?? false;
 
-        if(!empty($url[0])) {
-            if(isset($this->routes[$routeType]['routes'][$url[0]])) {
-                $route = explode('/', $this->routes[$routeType]['routes'][$url[0]]);
+        if($controllerAlias) {
+            if(isset($this->routes[$routeType]['routes'][$controllerAlias])) {
+                $route = explode('/', $this->routes[$routeType]['routes'][$controllerAlias]);
 
                 $this->controller .= ucfirst($route[0] . 'Controller');
             } else {
-                $this->controller .= ucfirst($url[0] . 'Controller');
+                $this->controller .= ucfirst($controllerAlias . 'Controller');
             }
         } else {
             $this->controller .= $this->routes['default']['controller'];

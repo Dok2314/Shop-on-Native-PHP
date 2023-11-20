@@ -11,6 +11,7 @@ class Settings
             'alias' => 'admin',
             'path' => 'core/admin/controllers/',
             'hrUrl' => false,
+            'routes' => [],
         ],
         'settings' => [
             'path' => 'core/base/settings/'
@@ -24,7 +25,6 @@ class Settings
             'path' => 'core/user/controllers/',
             'hrUrl' => true,
             'routes' => [
-                'catalog' => 'site/hello/by'
             ],
         ],
         'default' => [

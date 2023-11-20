@@ -9,9 +9,9 @@ class ShopSettings
 
     private array $routes = [
         'plugins' => [
-            'path' => 'core/plugins/',
-            'hrUrl' => false,
-            'dir' => 'controller',
+            'dir' => false,
+            'routes' => [
+            ],
         ],
     ];
 

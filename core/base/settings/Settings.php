@@ -24,7 +24,7 @@ class Settings
             'path' => 'core/user/controllers/',
             'hrUrl' => true,
             'routes' => [
-                'albom' => 'site/input/output'
+                'catalog' => 'site/hello/by'
             ],
         ],
         'default' => [

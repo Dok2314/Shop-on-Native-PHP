@@ -93,6 +93,7 @@ class RouteController
             $this->createRoute($routeType, $url);
 
             $this->setParameters($url, $hrlUrl);
+            exit();
         } else {
             try {
                 throw new \Exception('Некорректная директория сайта!');

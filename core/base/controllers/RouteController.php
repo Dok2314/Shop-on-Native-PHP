@@ -5,7 +5,7 @@ namespace core\base\controllers;
 use core\base\exceptions\RouteException;
 use core\base\settings\Settings;
 
-class RouteController
+class RouteController extends BaseController
 {
     const ADMIN_ROUTE_TYPE = 'admin';
     const USER_ROUTE_TYPE = 'user';
@@ -14,15 +14,6 @@ class RouteController
     private static $instance;
 
     protected array $routes;
-
-    protected $controller;
-    protected $inputMethod;
-    protected $outputMethod;
-    protected $parameters;
-
-    public function route()
-    {
-    }
 
     public static function getInstance(): RouteController
     {
@@ -53,9 +44,11 @@ class RouteController
             $this->routes = Settings::getSettingsByPropName('routes');
             if(!$this->routes) throw new RouteException('Сайт находится на техническом обслуживании!');
 
-            if(strpos($addressStr, $this->routes['admin']['alias']) === strlen(PATH))  {
+            $url = explode('/', ltrim($addressStr, PATH));
+
+            if(!empty($url[0]) && $url[0] === $this->routes['admin']['alias'])  {
                 // ADMIN PART
-                $url = explode('/', substr($addressStr, strlen(PATH . $this->routes['admin']['alias']) + 1));
+                array_shift($url);
 
                 if (!empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0])) {
                     // PLUGINS PART
@@ -81,8 +74,6 @@ class RouteController
                 }
             } else {
                 // USER PART
-                $url = explode('/', ltrim($addressStr, PATH));
-
                 $hrlUrl = $this->routes['user']['hrUrl'];
 
                 $this->controller = $this->routes['user']['path'];

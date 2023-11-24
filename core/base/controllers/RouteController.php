@@ -31,7 +31,7 @@ class RouteController extends BaseController
 
         $lastSlashPosition = mb_strrpos($addressStr, '/');
         if ($lastSlashPosition === mb_strlen($addressStr) - 1 && $lastSlashPosition !== 0) {
-            // $this->redirect(rtrim($addressStr, '/'), 301);
+             $this->redirect(rtrim($addressStr, '/'), 301);
         }
 
         $path = substr($phpSelf, 0, strpos($phpSelf, 'index.php'));

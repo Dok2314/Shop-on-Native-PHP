@@ -3,12 +3,16 @@
 namespace core\base\controllers;
 
 use core\base\exceptions\RouteException;
-use ReflectionMethod;
-use ReflectionException;
+use core\base\settings\Settings;
+use core\base\traits\BaseMethods;
 use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 
 abstract class BaseController
 {
+    use BaseMethods;
+
     const ADMIN_ROUTE_TYPE = 'admin';
     const USER_ROUTE_TYPE = 'user';
     const PLUGINS_ROUTE_TYPE = 'plugins';
@@ -51,9 +55,16 @@ abstract class BaseController
         $inputMethod = $args['inputMethod'];
         $outputMethod = $args['outputMethod'];
 
-        $this->$inputMethod();
+        $data = $this->$inputMethod();
 
-        $this->page = $this->$outputMethod();
+        if (method_exists($this, $outputMethod)) {
+            $page = $this->$outputMethod($data);
+            if ($page) {
+                $this->page = $this->$outputMethod($data);
+            }
+        } elseif ($data) {
+            $this->page = $data;
+        }
 
         if ($this->errors) {
             $this->writeLog();
@@ -62,12 +73,12 @@ abstract class BaseController
         $this->getPage();
     }
 
-    protected function render($path = '', $parameters = []): bool|string
+    protected function render($path = '', array $parameters = []): bool|string
     {
         extract($parameters);
 
         if (!$path) {
-            $path = TEMPLATE . explode('controller', strtolower((new ReflectionClass($this))->getShortName()))[0];
+            $path = $this->getPathFromControllerNameSpace();
         }
 
         ob_start();
@@ -77,8 +88,28 @@ abstract class BaseController
         return ob_get_clean();
     }
 
-    protected function getPage()
+    protected function getPage(): void
     {
-        exit($this->page);
+        if (is_array($this->page)) {
+            foreach ($this->page as $block) {
+                echo $block;
+            }
+        } else {
+            echo $this->page;
+        }
+
+        exit();
+    }
+
+    protected function getPathFromControllerNameSpace(): string
+    {
+        $class = new ReflectionClass($this);
+        $nameSpace = str_replace('\\', '/', $class->getNamespaceName() . '\\');
+
+        $routes = Settings::getSettingsByPropName('routes');
+
+        $template = ($nameSpace === $routes['user']['path']) ? TEMPLATE : ADMIN_TEMPLATE;
+
+        return $template . explode('controller', strtolower($class->getShortName()))[0];
     }
 }

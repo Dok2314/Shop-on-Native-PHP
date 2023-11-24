@@ -3,7 +3,7 @@
 defined('DOK_ACCESS') or die('ACCESS DENIED');
 
 const TEMPLATE = 'templates/default/';
-const ADMIN_TEMPLATES = 'core/admin/views/';
+const ADMIN_TEMPLATE = 'core/admin/views/';
 
 const COOKIE_VERSION = '1.0.0';
 const CRYPT_KEY = '';

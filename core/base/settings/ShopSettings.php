@@ -2,9 +2,12 @@
 
 namespace core\base\settings;
 
+use core\base\controllers\traits\Singleton;
+
 class ShopSettings
 {
-    private static $instance;
+    use Singleton;
+
     private $baseSettings;
 
     private array $routes = [
@@ -20,7 +23,7 @@ class ShopSettings
         'textarea' => ['goods_content'],
     ];
 
-    public static function getInstance()
+    private static function getInstance()
     {
         if (self::$instance instanceof self) {
             return self::$instance;
@@ -49,13 +52,5 @@ class ShopSettings
                 $this->$propName = $propVal;
             }
         }
-    }
-
-    private function __construct()
-    {
-    }
-
-    private function __clone()
-    {
     }
 }

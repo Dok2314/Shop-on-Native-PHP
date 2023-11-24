@@ -8,7 +8,5 @@ class IndexController extends BaseController
 {
     public function inputData()
     {
-
-        exit();
     }
 }

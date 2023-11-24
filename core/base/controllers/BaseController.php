@@ -98,7 +98,7 @@ abstract class BaseController
             echo $this->page;
         }
 
-        exit();
+//        exit();
     }
 
     protected function getPathFromControllerNameSpace(): string

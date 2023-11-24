@@ -2,27 +2,15 @@
 
 namespace core\base\controllers;
 
+use core\base\controllers\traits\Singleton;
 use core\base\exceptions\RouteException;
 use core\base\settings\Settings;
 
 class RouteController extends BaseController
 {
-    private static $instance;
+    use Singleton;
 
     protected array $routes;
-
-    public static function getInstance(): RouteController
-    {
-        if(self::$instance instanceof self) {
-            return self::$instance;
-        }
-
-        return self::$instance = new self;
-    }
-
-    private function __clone(): void
-    {
-    }
 
     private function __construct()
     {

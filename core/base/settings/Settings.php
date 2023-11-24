@@ -2,9 +2,11 @@
 
 namespace core\base\settings;
 
+use core\base\controllers\traits\Singleton;
+
 class Settings
 {
-    private static $instance;
+    use Singleton;
 
     private array $routes = [
         'admin' => [
@@ -38,15 +40,6 @@ class Settings
         'text' => ['name', 'phone', 'address'],
         'textarea' => ['content', 'keywords'],
     ];
-
-    public static function getInstance()
-    {
-        if (self::$instance instanceof self) {
-            return self::$instance;
-        }
-
-        return self::$instance = new self;
-    }
 
     public static function getSettingsByPropName($propName)
     {
@@ -93,13 +86,5 @@ class Settings
         }
 
         return $baseProps;
-    }
-
-    private function __construct()
-    {
-    }
-
-    private function __clone()
-    {
     }
 }

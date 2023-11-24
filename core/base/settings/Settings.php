@@ -34,12 +34,6 @@ class Settings
         ],
     ];
 
-    private $testProp = [
-        'test' => [
-            'key' => 'val'
-        ]
-    ];
-
     private array $templateArr = [
         'text' => ['name', 'phone', 'address'],
         'textarea' => ['content', 'keywords'],

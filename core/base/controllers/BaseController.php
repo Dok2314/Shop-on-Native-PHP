@@ -62,7 +62,7 @@ abstract class BaseController
         $this->getPage();
     }
 
-    protected function render($path = '', $parameters = [])
+    protected function render($path = '', $parameters = []): bool|string
     {
         extract($parameters);
 

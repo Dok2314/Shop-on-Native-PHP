@@ -1,7 +1,7 @@
 <?php
 
-use core\base\controllers\RouteController;
 use core\base\exceptions\RouteException;
+use core\base\controllers\RouteController;
 
 require_once 'ini_configuration.php';
 
@@ -16,7 +16,7 @@ require_once 'core/bootstrap/autoload.php';
 
 try {
     RouteController::getInstance()->route();
-    \core\base\settings\ShopSettings::getSettingsByPropName('routes');
+//    $routes = \core\base\settings\ShopSettings::getSettingsByPropName('routes');
 
 } catch (RouteException $e) {
     exit($e->getMessage());

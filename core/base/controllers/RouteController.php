@@ -7,10 +7,6 @@ use core\base\settings\Settings;
 
 class RouteController extends BaseController
 {
-    const ADMIN_ROUTE_TYPE = 'admin';
-    const USER_ROUTE_TYPE = 'user';
-    const PLUGINS_ROUTE_TYPE = 'plugins';
-
     private static $instance;
 
     protected array $routes;

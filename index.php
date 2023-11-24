@@ -16,6 +16,7 @@ require_once 'core/bootstrap/autoload.php';
 
 try {
     RouteController::getInstance()->route();
+    \core\base\settings\ShopSettings::getSettingsByPropName('routes');
 
 } catch (RouteException $e) {
     exit($e->getMessage());

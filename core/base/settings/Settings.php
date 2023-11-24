@@ -56,8 +56,9 @@ class Settings
 
     public static function getSettingsByPropName($propName)
     {
-        if(property_exists(self::getInstance(), $propName)) {
-            return self::getInstance()->$propName;
+        $obj = self::getInstance();
+        if(property_exists($obj, $propName)) {
+            return $obj->$propName;
         }
     }
 

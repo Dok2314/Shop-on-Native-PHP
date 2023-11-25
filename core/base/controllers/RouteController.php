@@ -12,62 +12,27 @@ class RouteController extends BaseController
 
     protected array $routes;
 
+    protected string $addressStr;
+    protected string $phpSelf;
+
+    protected bool $hrUrl;
+    protected string $routeType;
+
     private function __construct()
     {
-        $addressStr = $_SERVER['REQUEST_URI'];
-        $phpSelf = $_SERVER['PHP_SELF'];
+        $this->prepareVars();
 
-        $lastSlashPosition = mb_strrpos($addressStr, '/');
-        if ($lastSlashPosition === mb_strlen($addressStr) - 1 && $lastSlashPosition !== 0) {
-             $this->redirect(rtrim($addressStr, '/'), 301);
-        }
+        $this->redirectWithoutLastSlash($this->addressStr);
 
-        $path = substr($phpSelf, 0, strpos($phpSelf, 'index.php'));
+        $path = $this->getBasePath();
 
         if ($path === PATH) {
             $this->routes = Settings::getSettingsByPropName('routes');
             if(!$this->routes) throw new RouteException('Сайт находится на техническом обслуживании!');
 
-            $url = explode('/', ltrim($addressStr, PATH));
+            $url = explode('/', ltrim($this->addressStr, PATH));
 
-            if(!empty($url[0]) && $url[0] === $this->routes['admin']['alias'])  {
-                // ADMIN PART
-                array_shift($url);
-
-                if (!empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0])) {
-                    // PLUGINS PART
-                    $plugin = array_shift($url);
-
-                    $pluginSettings = $this->routes['settings']['path'] . ucfirst($plugin . 'Settings');
-
-                    if(file_exists($_SERVER['DOCUMENT_ROOT'] . PATH . $pluginSettings . '.php')) {
-                        $pluginSettings = str_replace('/', '\\', $pluginSettings);
-                        $this->routes = $pluginSettings::getSettingsByPropName('routes');
-                    }
-
-                    $dir = $this->routes['plugins']['dir'] ? '/' . $this->routes['plugins']['dir'] . '/' : '/';
-                    $dir = str_replace('//', '/', $dir);
-
-                    $this->controller = $this->routes['plugins']['path'] . $plugin . $dir;
-                    $hrlUrl = $this->routes['plugins']['hrUrl'];
-                    $routeType = self::PLUGINS_ROUTE_TYPE;
-                } else {
-                    $this->controller = $this->routes['admin']['path'];
-                    $hrlUrl = $this->routes['admin']['hrUrl'];
-                    $routeType = self::ADMIN_ROUTE_TYPE;
-                }
-            } else {
-                // USER PART
-                $hrlUrl = $this->routes['user']['hrUrl'];
-
-                $this->controller = $this->routes['user']['path'];
-
-                $routeType = self::USER_ROUTE_TYPE;
-            }
-
-            $this->createRoute($routeType, $url);
-
-            $this->setParameters($url, $hrlUrl);
+            $this->resolve($url);
         } else {
             try {
                 throw new \Exception('Некорректная директория сайта!');
@@ -75,6 +40,88 @@ class RouteController extends BaseController
                 exit($e->getMessage());
             }
         }
+    }
+
+    private function redirectWithoutLastSlash(string $address): void
+    {
+        $lastSlashPosition = mb_strrpos($address, '/');
+
+        if ($lastSlashPosition === mb_strlen($address) - 1 && $lastSlashPosition !== 0) {
+            $this->redirect(rtrim($address, '/'), 301);
+        }
+    }
+
+    private function isAdminPart($url): bool
+    {
+        return !empty($url[0]) && $url[0] === $this->routes['admin']['alias'];
+    }
+
+    private function isPluginPart($url): bool
+    {
+        return !empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0]);
+    }
+
+    private function prepareVars(): void
+    {
+        $this->addressStr = $_SERVER['REQUEST_URI'];
+        $this->phpSelf = $_SERVER['PHP_SELF'];
+    }
+
+    private function userPart(): void
+    {
+        $this->hrUrl = $this->routes['user']['hrUrl'];
+        $this->controller = $this->routes['user']['path'];
+        $this->routeType = self::USER_ROUTE_TYPE;
+    }
+
+    private function getBasePath(): string
+    {
+        return substr($this->phpSelf, 0, strpos($this->phpSelf, 'index.php'));
+    }
+
+    private function adminPart(): void
+    {
+        $this->controller = $this->routes['admin']['path'];
+        $this->hrUrl = $this->routes['admin']['hrUrl'];
+        $this->routeType = self::ADMIN_ROUTE_TYPE;
+    }
+
+    private function pluginPart($url): void
+    {
+        $plugin = array_shift($url);
+
+        $pluginSettings = $this->routes['settings']['path'] . ucfirst($plugin . 'Settings');
+
+        if(file_exists($_SERVER['DOCUMENT_ROOT'] . PATH . $pluginSettings . '.php')) {
+            $pluginSettings = str_replace('/', '\\', $pluginSettings);
+            $this->routes = $pluginSettings::getSettingsByPropName('routes');
+        }
+
+        $dir = $this->routes['plugins']['dir'] ? '/' . $this->routes['plugins']['dir'] . '/' : '/';
+        $dir = str_replace('//', '/', $dir);
+
+        $this->controller = $this->routes['plugins']['path'] . $plugin . $dir;
+        $this->hrUrl = $this->routes['plugins']['hrUrl'];
+        $this->routeType = self::PLUGINS_ROUTE_TYPE;
+    }
+
+    private function resolve($url): void
+    {
+        if($this->isAdminPart($url))  {
+            array_shift($url);
+
+            if ($this->isPluginPart($url)) {
+                $this->pluginPart($url);
+            } else {
+                $this->adminPart();
+            }
+        } else {
+            $this->userPart();
+        }
+
+        $this->createRoute($this->routeType, $url);
+
+        $this->setParameters($url, $this->hrUrl);
     }
 
     private function createRoute(string $routeType, array $url): void

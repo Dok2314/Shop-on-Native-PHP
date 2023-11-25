@@ -25,6 +25,9 @@ abstract class BaseController
     protected $outputMethod;
     protected $parameters;
 
+    protected array $styles;
+    protected array $scripts;
+
     /**
      * @throws RouteException
      */
@@ -67,7 +70,7 @@ abstract class BaseController
         }
 
         if ($this->errors) {
-            $this->writeLog();
+            $this->writeLog($this->errors);
         }
 
         $this->getPage();
@@ -98,7 +101,7 @@ abstract class BaseController
             echo $this->page;
         }
 
-//        exit();
+        exit();
     }
 
     protected function getPathFromControllerNameSpace(): string
@@ -111,5 +114,34 @@ abstract class BaseController
         $template = ($nameSpace === $routes['user']['path']) ? TEMPLATE : ADMIN_TEMPLATE;
 
         return $template . explode('controller', strtolower($class->getShortName()))[0];
+    }
+
+    protected function initJsScriptsAndCssStyles(bool $admin = false): void
+    {
+        if (!$admin) {
+            if (isset(USER_CSS_JS['styles'])) {
+                foreach (USER_CSS_JS['styles'] as $style) {
+                    $this->styles[] = PATH . TEMPLATE . trim($style, '/');
+                }
+            }
+
+            if (isset(USER_CSS_JS['scripts'])) {
+                foreach (USER_CSS_JS['scripts'] as $script) {
+                    $this->scripts[] = PATH . TEMPLATE . trim($script, '/');
+                }
+            }
+        } else {
+            if (isset(ADMIN_CSS_JS['styles'])) {
+                foreach (USER_CSS_JS['styles'] as $style) {
+                    $this->styles[] = PATH . TEMPLATE . trim($style, '/');
+                }
+            }
+
+            if (isset(ADMIN_CSS_JS['scripts'])) {
+                foreach (USER_CSS_JS['scripts'] as $script) {
+                    $this->scripts[] = PATH . TEMPLATE . trim($script, '/');
+                }
+            }
+        }
     }
 }

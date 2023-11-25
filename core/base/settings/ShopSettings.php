@@ -23,14 +23,13 @@ class ShopSettings
         'textarea' => ['goods_content'],
     ];
 
-    private static function getInstance()
+    private static function instance()
     {
         if (self::$instance instanceof self) {
             return self::$instance;
         }
 
-        self::$instance = new self;
-        self::$instance->baseSettings = Settings::getInstance();
+        self::getInstance()->baseSettings = Settings::getInstance();
         $properties = self::$instance->baseSettings->clueProperties(self::class);
         self::$instance->setProperties($properties);
 
@@ -39,7 +38,7 @@ class ShopSettings
 
     public static function getSettingsByPropName($propName)
     {
-        $obj = self::getInstance();
+        $obj = self::instance();
         if(property_exists($obj, $propName)) {
             return $obj->$propName;
         }

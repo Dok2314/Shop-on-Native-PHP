@@ -6,38 +6,6 @@ use DateTime;
 
 trait BaseMethods
 {
-    protected array $styles;
-    protected array $scripts;
-
-    protected function initJsScriptsAndCssStyles(bool $admin = false): void
-    {
-        if (!$admin) {
-            if (isset(USER_CSS_JS['styles'])) {
-                foreach (USER_CSS_JS['styles'] as $style) {
-                    $this->styles[] = PATH . TEMPLATE . trim($style, '/');
-                }
-            }
-
-            if (isset(USER_CSS_JS['scripts'])) {
-                foreach (USER_CSS_JS['scripts'] as $script) {
-                    $this->scripts[] = PATH . TEMPLATE . trim($script, '/');
-                }
-            }
-        } else {
-            if (isset(ADMIN_CSS_JS['styles'])) {
-                foreach (USER_CSS_JS['styles'] as $style) {
-                    $this->styles[] = PATH . TEMPLATE . trim($style, '/');
-                }
-            }
-
-            if (isset(ADMIN_CSS_JS['scripts'])) {
-                foreach (USER_CSS_JS['scripts'] as $script) {
-                    $this->scripts[] = PATH . TEMPLATE . trim($script, '/');
-                }
-            }
-        }
-    }
-
     protected function clearStr(array|string $str): array|string
     {
         if (is_array($str)) {

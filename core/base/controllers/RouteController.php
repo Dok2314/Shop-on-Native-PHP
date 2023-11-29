@@ -5,6 +5,7 @@ namespace core\base\controllers;
 use core\base\controllers\traits\Singleton;
 use core\base\exceptions\RouteException;
 use core\base\settings\Settings;
+use Exception;
 
 class RouteController extends BaseController
 {
@@ -28,17 +29,13 @@ class RouteController extends BaseController
 
         if ($path === PATH) {
             $this->routes = Settings::getSettingsByPropName('routes');
-            if(!$this->routes) throw new RouteException('Сайт находится на техническом обслуживании!');
+            if(!$this->routes) throw new RouteException('Отсутствуют маршруты в базовых настройках', 1);
 
             $url = explode('/', ltrim($this->addressStr, PATH));
 
             $this->resolveRoute($url);
         } else {
-            try {
-                throw new \Exception('Некорректная директория сайта!');
-            } catch (\Exception $e) {
-                exit($e->getMessage());
-            }
+            throw new RouteException('Некорректная директория сайта!', 1);
         }
     }
 

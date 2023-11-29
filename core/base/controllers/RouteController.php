@@ -32,7 +32,7 @@ class RouteController extends BaseController
 
             $url = explode('/', ltrim($this->addressStr, PATH));
 
-            $this->resolve($url);
+            $this->resolveRoute($url);
         } else {
             try {
                 throw new \Exception('Некорректная директория сайта!');
@@ -40,6 +40,12 @@ class RouteController extends BaseController
                 exit($e->getMessage());
             }
         }
+    }
+
+    private function prepareVars(): void
+    {
+        $this->addressStr = $_SERVER['REQUEST_URI'];
+        $this->phpSelf = $_SERVER['PHP_SELF'];
     }
 
     private function redirectWithoutLastSlash(string $address): void
@@ -51,20 +57,28 @@ class RouteController extends BaseController
         }
     }
 
-    private function isAdminPart($url): bool
+    private function getBasePath(): string
     {
-        return !empty($url[0]) && $url[0] === $this->routes['admin']['alias'];
+        return substr($this->phpSelf, 0, strpos($this->phpSelf, 'index.php'));
     }
 
-    private function isPluginPart($url): bool
+    private function resolveRoute($url): void
     {
-        return !empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0]);
-    }
+        if($this->isAdminPart($url))  {
+            array_shift($url);
 
-    private function prepareVars(): void
-    {
-        $this->addressStr = $_SERVER['REQUEST_URI'];
-        $this->phpSelf = $_SERVER['PHP_SELF'];
+            if ($this->isPluginPart($url)) {
+                $this->pluginPart($url);
+            } else {
+                $this->adminPart();
+            }
+        } else {
+            $this->userPart();
+        }
+
+        $this->createRoute($this->routeType, $url);
+
+        $this->setParameters($url, $this->hrUrl);
     }
 
     private function userPart(): void
@@ -72,11 +86,6 @@ class RouteController extends BaseController
         $this->hrUrl = $this->routes['user']['hrUrl'];
         $this->controller = $this->routes['user']['path'];
         $this->routeType = self::USER_ROUTE_TYPE;
-    }
-
-    private function getBasePath(): string
-    {
-        return substr($this->phpSelf, 0, strpos($this->phpSelf, 'index.php'));
     }
 
     private function adminPart(): void
@@ -105,23 +114,14 @@ class RouteController extends BaseController
         $this->routeType = self::PLUGINS_ROUTE_TYPE;
     }
 
-    private function resolve($url): void
+    private function isAdminPart($url): bool
     {
-        if($this->isAdminPart($url))  {
-            array_shift($url);
+        return !empty($url[0]) && $url[0] === $this->routes['admin']['alias'];
+    }
 
-            if ($this->isPluginPart($url)) {
-                $this->pluginPart($url);
-            } else {
-                $this->adminPart();
-            }
-        } else {
-            $this->userPart();
-        }
-
-        $this->createRoute($this->routeType, $url);
-
-        $this->setParameters($url, $this->hrUrl);
+    private function isPluginPart($url): bool
+    {
+        return !empty($url[0]) && is_dir($_SERVER['DOCUMENT_ROOT'] . PATH . $this->routes['plugins']['path'] . $url[0]);
     }
 
     private function createRoute(string $routeType, array $url): void

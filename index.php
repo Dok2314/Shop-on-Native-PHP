@@ -2,8 +2,10 @@
 
 use core\base\exceptions\RouteException;
 use core\base\controllers\RouteController;
+use core\base\exceptions\DBException;
 
 require_once 'ini_configuration.php';
+require_once 'mysql_configuration.php';
 
 const DOK_ACCESS = true;
 
@@ -17,5 +19,7 @@ require_once 'core/bootstrap/autoload.php';
 try {
     RouteController::getInstance()->route();
 } catch (RouteException $e) {
+    exit($e->getMessage());
+} catch (DBException $e) {
     exit($e->getMessage());
 }

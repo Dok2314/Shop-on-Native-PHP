@@ -63,7 +63,7 @@ abstract class BaseController
         if (method_exists($this, $outputMethod)) {
             $page = $this->$outputMethod($data);
             if ($page) {
-                $this->page = $this->$outputMethod($data);
+                $this->page = $page;
             }
         } elseif ($data) {
             $this->page = $data;

@@ -26,8 +26,35 @@ class BaseModel
         $this->db->query("SET NAMES UTF8");
     }
 
+    /**
+     * @throws DBException
+     */
     final public function query(string $query, $crud = 'r', $returnId = false)
     {
         $result = $this->db->query($query);
+
+        if ($this->db->affected_rows === -1) {
+            throw new DBException('Ошибка в SQL запросе: ' . $query . ' - ' . $this->db->errno . ' ' . $this->db->error);
+        }
+
+        switch ($crud) {
+            case 'r':
+                if ($result->num_rows) {
+                    $res = [];
+
+                    for ($i = 0; $i < $result->num_rows; $i++) {
+                        $res[] = $result->fetch_assoc();
+                    }
+
+                    return $res;
+                }
+
+                return false;
+            case 'c':
+                if ($returnId) return $this->db->insert_id;
+                return true;
+            default:
+                return true;
+        }
     }
 }

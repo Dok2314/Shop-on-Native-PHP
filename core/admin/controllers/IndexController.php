@@ -15,7 +15,7 @@ class IndexController extends BaseController
 
         $res = $model->get($table, [
             'fields' => ['id', 'name'],
-            'where' => ['fio' => 'Koversun', 'name' => 'Daniil', 'patronymic' => 'Olexandrovich'],
+            'where' => ['fio' => 'Ivanov', 'name' => 'Ivan', 'patronymic' => 'Ivanovich'],
             'operand' => ['<>', '='],
             'condition' => ['AND'],
             'order' => ['fio', 'name'],

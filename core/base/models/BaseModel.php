@@ -5,7 +5,6 @@ namespace core\base\models;
 use core\base\controllers\traits\Singleton;
 use core\base\exceptions\DBException;
 use mysqli;
-use mysqli_result;
 
 class BaseModel
 {
@@ -72,7 +71,7 @@ class BaseModel
      * @return array|bool|int|string
      * @throws DBException
      */
-    final public function get(string $table, array $params = [])
+    final public function get(string $table, array $params = []): array|bool|int|string
     {
         $fields = $this->createFields($table, $params);
         $where = $this->createWhere($table, $params);
@@ -85,7 +84,7 @@ class BaseModel
         $fields = rtrim($fields, ',');
 
         $order = $this->createOrder($table, $params);
-
+        
         $limit = $params['limit'] ?: '';
 
         $query = "SELECT $fields FROM $table $join $where $order $limit";
@@ -93,9 +92,18 @@ class BaseModel
         return $this->query($query);
     }
 
-    protected function createFields(string $table, array $params = [])
+    protected function createFields(string|bool $table = false, array $params = []): string
     {
+        $params['fields'] = $this->getValueByKeyFromParams($params, 'fields', ['*']);
 
+        $table = $table . '.' ?: '';
+
+        $fields = '';
+        foreach ($params['fields'] as $fieldName) {
+            $fields .= $table . $fieldName . ',';
+        }
+
+        return $fields;
     }
 
     protected function createWhere(string $table, array $params = [])
@@ -108,8 +116,34 @@ class BaseModel
 
     }
 
-    protected function createOrder(string $table, array $params = [])
+    protected function createOrder(string $table, array $params = []): string
     {
+        $table = $table . '.' ?: '';
 
+        $orderBy = '';
+        if (isset($params['order']) && is_array($params['order'])) {
+            $params['order_direction'] = $this->getValueByKeyFromParams($params, 'order_direction', ['ASC']);
+
+            $orderBy = 'ORDER BY ';
+            $directCount = 0;
+            foreach ($params['order'] as $order) {
+                if (isset($params['order_direction'][$directCount])) {
+                    $orderDirection = strtoupper($params['order_direction'][$directCount]);
+                    $directCount++;
+                } else {
+                    $orderDirection = $params['order_direction'][$directCount - 1];
+                }
+
+                $orderBy .= $table . $order . ' ' . $orderDirection . ',';
+            }
+            $orderBy = rtrim($orderBy, ',');
+        }
+
+        return $orderBy;
+    }
+
+    private function getValueByKeyFromParams(array $params, string $key, $defaultValue = false): array
+    {
+        return (isset($params[$key]) && is_array($params[$key])) ? $params[$key] : $defaultValue;
     }
 }

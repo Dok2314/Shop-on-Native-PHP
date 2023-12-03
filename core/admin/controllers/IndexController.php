@@ -19,7 +19,7 @@ class IndexController extends BaseController
             'operand' => ['<>', '='],
             'condition' => ['AND'],
             'order' => ['fio', 'name'],
-            'order_direction' => ['ASC', 'DESC'],
+//            'order_direction' => ['DESC'],
             'limit' => '1'
         ]);
 

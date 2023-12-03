@@ -73,8 +73,8 @@ class BaseModel
      */
     final public function get(string $table, array $params = []): array|bool|int|string
     {
-        $fields = $this->createFields($table, $params);
-        $where = $this->createWhere($table, $params);
+        $fields = $this->createFields($params, $table);
+        $where = $this->createWhere($params, $table);
         $joinArr = $this->createJoin($table, $params);
 
         $fields .= $joinArr['fields'] ?? '';
@@ -83,20 +83,21 @@ class BaseModel
 
         $fields = rtrim($fields, ',');
 
-        $order = $this->createOrder($table, $params);
-        
+        $order = $this->createOrder($params, $table);
+
         $limit = $params['limit'] ?: '';
 
+        dd($where);
         $query = "SELECT $fields FROM $table $join $where $order $limit";
 
         return $this->query($query);
     }
 
-    protected function createFields(string|bool $table = false, array $params = []): string
+    protected function createFields(array $params, string|bool $table = false): string
     {
         $params['fields'] = $this->getValueByKeyFromParams($params, 'fields', ['*']);
 
-        $table = $table . '.' ?: '';
+        $table = $table ? $table . '.' : '';
 
         $fields = '';
         foreach ($params['fields'] as $fieldName) {
@@ -106,9 +107,60 @@ class BaseModel
         return $fields;
     }
 
-    protected function createWhere(string $table, array $params = [])
+    protected function createWhere(array $params, string|bool $table = false, $instruction = 'WHERE')
     {
+        $table = $table ? $table . '.' : '';
+        $where = '';
 
+        if ($this->contain($params, 'where')) {
+            $params['operand'] = $this->getValueByKeyFromParams($params, 'operand', ["="]);
+            $params['condition'] = $this->getValueByKeyFromParams($params, 'condition', ["AND"]);
+
+            $where = $instruction;
+
+            $operandCount = 0;
+            $conditionCount = 0;
+
+            foreach ($params['where'] as $key => $value) {
+                $where .= ' ';
+
+                if (isset($params['operand'][$operandCount])) {
+                    $operand = $params['operand'][$operandCount];
+                    $operandCount++;
+                } else {
+                    $operand = $params['operand'][$operandCount - 1];
+                }
+
+                if (isset($params['condition'][$conditionCount])) {
+                    $condition = $params['condition'][$conditionCount];
+                    $conditionCount++;
+                } else {
+                    $condition = $params['condition'][$conditionCount - 1];
+                }
+
+                if ($operand === 'IN' || $operand === 'NOT IN') {
+                    if (is_string($value) && str_starts_with($value, 'SELECT')) {
+                        $inStr = $value;
+                    } else {
+                        if (is_array($value)) {
+                            $tempValue = $value;
+                        } else {
+                            $tempValue = explode(',', $value);
+                        }
+
+                        $inStr = '';
+
+                        foreach ($tempValue as $tmpVal) {
+                            $inStr .= "'" . addslashes(trim($tmpVal)) . "',";
+                        }
+                    }
+
+                    $where .= $table . $key . ' ' . $operand . ' (' . trim($inStr, ',') . ') ' . $condition;
+                }
+            }
+        }
+
+        return $where;
     }
 
     protected function createJoin(string $table, array $params = [])
@@ -116,12 +168,12 @@ class BaseModel
 
     }
 
-    protected function createOrder(string $table, array $params = []): string
+    protected function createOrder(array $params, string|bool $table = false): string
     {
-        $table = $table . '.' ?: '';
+        $table = $table ? $table . '.' : '';
 
         $orderBy = '';
-        if (isset($params['order']) && is_array($params['order'])) {
+        if ($this->contain($params, 'order')) {
             $params['order_direction'] = $this->getValueByKeyFromParams($params, 'order_direction', ['ASC']);
 
             $orderBy = 'ORDER BY ';
@@ -144,6 +196,11 @@ class BaseModel
 
     private function getValueByKeyFromParams(array $params, string $key, $defaultValue = false): array
     {
-        return (isset($params[$key]) && is_array($params[$key])) ? $params[$key] : $defaultValue;
+        return ($this->contain($params, $key)) ? $params[$key] : $defaultValue;
+    }
+
+    private function contain($params, $key): bool
+    {
+        return isset($params[$key]) && is_array($params[$key]);
     }
 }

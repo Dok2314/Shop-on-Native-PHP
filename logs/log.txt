@@ -1,0 +1,8 @@
+Fault : 03-12-2023 10:49:15 - Class "core\plugins\shop\ShopController" does not exist
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/controllers/BaseController.php
+In line 50
+
+Fault : 03-12-2023 10:49:18 - Class "core\plugins\shop\ShopController" does not exist
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/controllers/BaseController.php
+In line 50
+

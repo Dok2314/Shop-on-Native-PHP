@@ -1,0 +1,18 @@
+Fault : 03-12-2023 11:29:17 - Ошибка в SQL запросе: SELECT s.id AS StudentId, s.name AS StudentName, t.id AS TeacherId, t.name AS TeacherName
+                  FROM students AS s
+                  JOIN stud_tech ON s.student_id = s.id
+                  JOIN teachers AS t ON t.id = s.teacher_id - 1146 Table 'shop.stud_tech' doesn't exist
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
+In line 37
+
+Fault : 03-12-2023 11:29:33 - Ошибка в SQL запросе: SELECT s.id AS StudentId, s.name AS StudentName, t.id AS TeacherId, t.name AS TeacherName
+                  FROM students AS s
+                  JOIN stud_teach ON s.student_id = s.id
+                  JOIN teachers AS t ON t.id = s.teacher_id - 1054 Unknown column 's.student_id' in 'on clause'
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
+In line 37
+
+Fault : 03-12-2023 12:07:20 - Ошибка в SQL запросе: SELECT  FROM teachers    1 - 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'FROM teachers    1' at line 1
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
+In line 38
+

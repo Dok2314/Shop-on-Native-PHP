@@ -5,6 +5,7 @@ namespace core\base\models;
 use core\base\controllers\traits\Singleton;
 use core\base\exceptions\DBException;
 use mysqli;
+use mysqli_result;
 
 class BaseModel
 {
@@ -29,7 +30,7 @@ class BaseModel
     /**
      * @throws DBException
      */
-    final public function query(string $query, $crud = 'r', $returnId = false)
+    final public function query(string $query, $crud = 'r', $returnId = false): int|bool|array|string
     {
         $result = $this->db->query($query);
 
@@ -56,5 +57,59 @@ class BaseModel
             default:
                 return true;
         }
+    }
+
+    /**
+     * @param string $table - Таблица базы данных
+     * @param array $params
+     * 'fields' => ['id', 'name'],
+     * 'where' => ['fio' => 'Ivanov', 'name' => 'Ivan', 'patronymic' => 'Ivanovich'],
+     * 'operand' => ['<>', '='],
+     * 'condition' => ['AND'],
+     * 'order' => ['fio', 'name'],
+     * 'order_direction' => ['ASC', 'DESC'],
+     * 'limit' => '1'
+     * @return array|bool|int|string
+     * @throws DBException
+     */
+    final public function get(string $table, array $params = [])
+    {
+        $fields = $this->createFields($table, $params);
+        $where = $this->createWhere($table, $params);
+        $joinArr = $this->createJoin($table, $params);
+
+        $fields .= $joinArr['fields'] ?? '';
+        $join = $joinArr['join'] ?? '';
+        $where .= $joinArr['where'] ?? '';
+
+        $fields = rtrim($fields, ',');
+
+        $order = $this->createOrder($table, $params);
+
+        $limit = $params['limit'] ?: '';
+
+        $query = "SELECT $fields FROM $table $join $where $order $limit";
+
+        return $this->query($query);
+    }
+
+    protected function createFields(string $table, array $params = [])
+    {
+
+    }
+
+    protected function createWhere(string $table, array $params = [])
+    {
+
+    }
+
+    protected function createJoin(string $table, array $params = [])
+    {
+
+    }
+
+    protected function createOrder(string $table, array $params = [])
+    {
+
     }
 }

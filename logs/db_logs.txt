@@ -1,4 +1,4 @@
-Fault : 03-12-2023 13:12:52 - Ошибка в SQL запросе: SELECT teachers.id,teachers.name FROM teachers   ORDER BY .fio ASC,.name ASC 1 - 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ASC,.name ASC 1' at line 1
+Fault : 17-12-2023 13:58:21 - Ошибка в SQL запросе: SELECT teachers.id, teachers.name FROM teachers  WHERE teachers.name IN ('daniil','oleg','olya') AND teachers.patronymic LIKE '%Ivanovich%' AND teachers.fio<>'Andreev' AND teachers.car='Porsche' AND teachers.color NOT IN ('red','green','blue') ORDER BY teachers.fio ASC, teachers.name DESC LIMIT 1 - 1054 Unknown column 'teachers.patronymic' in 'where clause'
 file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
 In line 37
 

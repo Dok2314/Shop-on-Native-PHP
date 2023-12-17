@@ -75,7 +75,10 @@ class BaseModel
     {
         $fields = $this->createFields($params, $table);
         $where = $this->createWhere($params, $table);
-        $joinArr = $this->createJoin($table, $params);
+
+        $newWhere = !$where;
+
+        $joinArr = $this->createJoin($table, $params, $newWhere);
 
         $fields .= $joinArr['fields'] ?? '';
         $join = $joinArr['join'] ?? '';

@@ -22,7 +22,7 @@ trait BaseModelMethods
         $table = $table ? $table . '.' : '';
         $where = '';
 
-        if ($this->contain($params, 'where')) {
+        if ($this->containAndArray($params, 'where')) {
             $params['operand'] = $this->getValueByKeyFromParams($params, 'operand', ["="]);
             $params['condition'] = $this->getValueByKeyFromParams($params, 'condition', ["AND"]);
 
@@ -47,10 +47,10 @@ trait BaseModelMethods
 
                     $where .= $table . $key . ' LIKE ' . "'" . $value . "' $condition";
                 } else {
-                    if(str_starts_with($value, 'SELECT')) {
-                        $where .=  $table . $key . $operand . '(' . $value . ") $condition";
+                    if (str_starts_with($value, 'SELECT')) {
+                        $where .= $table . $key . $operand . '(' . $value . ") $condition";
                     } else {
-                        $where .=  $table . $key . $operand . "'" . $value . "' $condition";
+                        $where .= $table . $key . $operand . "'" . $value . "' $condition";
                     }
                 }
             }
@@ -61,9 +61,113 @@ trait BaseModelMethods
         return $where;
     }
 
-    protected function createJoin(string $table, array $params = [])
-    {
 
+    /**
+     * @param string $table
+     * @param array $params
+     * @param bool $newWhere
+     * @return array
+     *
+     * 'join' => [
+     * [
+     * 'table' => 'join_table1',
+     * 'fields' => ['id as j_id', 'name as j_name'],
+     * 'type' => 'left',
+     * 'where' => ['name' => 'Sasha'],
+     * 'operand' => ['='],
+     * 'condition' => ['OR'],
+     * 'on' => ['id', 'parent_id'],
+     * 'group_condition' => 'AND',
+     * ],
+     * 'join_table2' => [
+     * 'table' => 'join_table2',
+     * 'fields' => ['id as j2_id', 'name as j2_name'],
+     * 'type' => 'left',
+     * 'where' => ['name' => 'Sasha'],
+     * 'operand' => ['<>'],
+     * 'condition' => ['AND'],
+     * 'on' => [
+     *      'table' => 'teachers',
+     *      'fields' => ['id', 'parent_id'],
+     * ],
+     * ],
+     * ],
+     *
+     */
+    protected function createJoin(string $table, array $params = [], bool $newWhere = false): array
+    {
+        $fields = '';
+        $join = '';
+        $where = '';
+
+        if ($this->contain($params, 'join')) {
+            $joinTable = $table;
+
+            foreach ($params['join'] as $key => $value) {
+                if (is_int($key)) {
+                    if (!$this->contain($value, 'table')) {
+                        continue;
+                    } else {
+                        $key = $value['table'];
+                    }
+                }
+
+                if ($join) {
+                    $join .= ' ';
+                }
+
+                if ($this->contain($value, 'on')) {
+                    $joinFields = [];
+
+                    switch (2) {
+                        case count($value['on']['fields']):
+                            $joinFields = $value['on']['fields'];
+                            break;
+                        case count($value['on']):
+                            $joinFields = $value['on'];
+                            break;
+                        default:
+                            // Go to the next iteration of the foreach loop
+                            continue 2;
+                    }
+
+                    // Default using LEFT JOIN
+                    if(!$this->contain($value, 'type')) {
+                        $join .= 'LEFT JOIN';
+                    } else {
+                        $join .= trim(strtoupper($value['type'])) . ' JOIN ';
+                    }
+
+                    $join .= $key . ' ON ';
+
+                    if($this->contain($value['on'], 'table')) {
+                        $join .= $value['on']['table'];
+                    } else {
+                        $join .= $joinTable;
+                    }
+
+                    $join .= '.' . $joinFields[0] . '=' . $key . '.' . $joinFields[1];
+
+                    $joinTable = $key;
+
+                    if($newWhere) {
+                        if($this->contain($value, 'where')) {
+                            $newWhere = false;
+                        }
+
+                        $groupCondition = 'WHERE';
+                    } else {
+                        $groupCondition = $value['group_condition'] ? strtoupper($value['group_condition']) : 'AND';
+                    }
+
+                    $fields .= $this->createFields($key, $value);
+
+                    $where .= $this->createWhere($key, $value, $groupCondition);
+                }
+            }
+        }
+
+        return compact('fields', 'join', 'where');
     }
 
     protected function createOrder(array $params, string|bool $table = false): string
@@ -71,7 +175,7 @@ trait BaseModelMethods
         $table = $table ? $table . '.' : '';
 
         $orderBy = '';
-        if ($this->contain($params, 'order')) {
+        if ($this->containAndArray($params, 'order')) {
             $params['order_direction'] = $this->getValueByKeyFromParams($params, 'order_direction', ['ASC']);
 
             $orderBy = 'ORDER BY ';
@@ -79,7 +183,11 @@ trait BaseModelMethods
             foreach ($params['order'] as $orderColumn) {
                 $orderDirection = $this->getOrderDirection($params, $directCount);
 
-                $orderBy .= $table . $orderColumn . ' ' . $orderDirection . ', ';
+                if (is_int($orderColumn)) {
+                    $orderBy .= $orderColumn . ' ' . $orderDirection . ', ';
+                } else {
+                    $orderBy .= $table . $orderColumn . ' ' . $orderDirection . ', ';
+                }
             }
             $orderBy = rtrim($orderBy, ', ');
         }
@@ -89,12 +197,17 @@ trait BaseModelMethods
 
     private function getValueByKeyFromParams(array $params, string $key, $defaultValue = false): array
     {
-        return ($this->contain($params, $key)) ? $params[$key] : $defaultValue;
+        return ($this->containAndArray($params, $key)) ? $params[$key] : $defaultValue;
     }
 
-    private function contain($params, $key): bool
+    private function containAndArray($params, $key): bool
     {
         return isset($params[$key]) && is_array($params[$key]);
+    }
+
+    private function contain($stack, $needle): bool
+    {
+        return isset($stack[$needle]);
     }
 
     private function getOrderDirection($params, &$directCount)

@@ -147,7 +147,7 @@ trait BaseModelMethods
                     $joinTable = $key;
 
                     if ($newWhere) {
-                        if($this->contain($item, 'where')) {
+                        if ($this->contain($item, 'where')) {
                             $newWhere = false;
                         }
 
@@ -280,5 +280,38 @@ trait BaseModelMethods
         }
 
         return $value;
+    }
+
+    protected function createInsert($fields, $files, $except)
+    {
+        if (!$fields) {
+            $fields = $_POST;
+        }
+
+        $insert_arr = [];
+
+        if ($fields) {
+            $sql_func = ['NOW()'];
+
+            foreach ($fields as $fieldName => $fieldValue) {
+                if($except && in_array($fieldName, $except)) {
+                    continue;
+                }
+
+                $insert_arr['fields'] .= $fieldName . ',';
+
+                if(in_array($fieldValue, $sql_func)) {
+                    $insert_arr['values'] .= $fieldValue . ',';
+                } else {
+                    $insert_arr['values'] .=  "'" . addslashes($fieldValue) . "',";
+                }
+            }
+        }
+
+        if($files) {
+            foreach ($files as $fileKey => $fileValue) {
+                
+            }
+        }
     }
 }

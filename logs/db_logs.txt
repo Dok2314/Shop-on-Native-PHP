@@ -1,4 +1,0 @@
-Fault : 31-12-2023 14:05:46 - Ошибка в SQL запросе: SELECT teachers.id, teachers.name FROM teachers  WHERE teachers.name='O'Raily' ORDER BY teachers.name DESC LIMIT 1 - 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'Raily' ORDER BY teachers.name DESC LIMIT 1' at line 1
-file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
-In line 37
-

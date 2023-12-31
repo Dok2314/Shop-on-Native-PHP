@@ -27,6 +27,7 @@ class BaseModel
     }
 
     /**
+     * string $crud = r - SELECT / c - INSERT / u - UPDATE / d - DELETE
      * @throws DBException
      */
     final public function query(string $query, $crud = 'r', $returnId = false): int|bool|array|string
@@ -93,5 +94,34 @@ class BaseModel
         $query = "SELECT $fields FROM $table $join $where $order $limit";
 
         return $this->query($query);
+    }
+
+    /**
+     * @param $table - таблица для вставки данных;
+     * @param array $params - массив параметров;
+     * fields => [поле => значение]; если не указан, то обрабатывается $_POST[поле => значение]
+     * разрешена передача например NOW() в качестве MySQL функции обычной строкой
+     * files = [поле => значение]; можно подать массив вида [поле => [массив значений]]
+     * except => ['исключение 1', 'исключение 2'] - исключает данные элементы массива из добавления в запрос
+     * return_id => true/false - возвращать или нет идентификатор вставленой записи
+     * @return string|int|bool|array
+     * @throws DBException
+     */
+    final public function add($table, array $params = []): string|int|bool|array
+    {
+        $params['fields'] = $this->containAndArray($params, 'fields') ? $params['fields'] : false;
+        $params['files'] = $this->containAndArray($params, 'files') ? $params['files'] : false;
+        $params['return_id'] = $this->contain($params, 'return_id');
+        $params['except'] = $this->containAndArray($params, 'except') ? $params['except'] : false;
+
+        $insert_arr = $this->createInsert($params['fields'], $params['files'], $params['except']);
+
+        if ($insert_arr) {
+            $query = "INSERT INTO $table ({$insert_arr['fields']}) VALUES({$insert_arr['values']})";
+
+            return $this->query($query, 'c', $params['return_id']);
+        }
+
+        return false;
     }
 }

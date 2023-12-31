@@ -86,10 +86,11 @@ class BaseModel
 
         $order = $this->createOrder($params, $table);
 
-        $limit = $params['limit'] ? "LIMIT {$params['limit']}" : '';
+        $limit = isset($params['limit']) ? "LIMIT {$params['limit']}" : '';
+
+        $fields = rtrim($fields, ', ');
 
         $query = "SELECT $fields FROM $table $join $where $order $limit";
-        dd($query);
 
         return $this->query($query);
     }

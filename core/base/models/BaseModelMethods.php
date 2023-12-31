@@ -14,7 +14,7 @@ trait BaseModelMethods
             $fields .= $table . $fieldName . ', ';
         }
 
-        return rtrim($fields, ', ');
+        return $fields;
     }
 
     protected function createWhere(array $params, string|bool $table = false, $instruction = 'WHERE')
@@ -45,12 +45,12 @@ trait BaseModelMethods
                 } elseif (str_contains($operand, 'LIKE')) {
                     $value = $this->resolveLikeOperand($operand, $value);
 
-                    $where .= $table . $key . ' LIKE ' . "'" . $value . "' $condition";
+                    $where .= $table . $key . ' LIKE ' . "'" . addslashes($value) . "' $condition";
                 } else {
                     if (str_starts_with($value, 'SELECT')) {
                         $where .= $table . $key . $operand . '(' . $value . ") $condition";
                     } else {
-                        $where .= $table . $key . $operand . "'" . $value . "' $condition";
+                        $where .= $table . $key . $operand . "'" . addslashes($value) . "' $condition";
                     }
                 }
             }
@@ -94,21 +94,21 @@ trait BaseModelMethods
      * ],
      *
      */
-    protected function createJoin(string $table, array $params = [], bool $newWhere = false): array
+    protected function createJoin(string $table, array $params = [], bool $newWhere = false)
     {
         $fields = '';
         $join = '';
         $where = '';
 
-        if ($this->contain($params, 'join')) {
+        if ($this->containAndArray($params, 'join')) {
             $joinTable = $table;
 
-            foreach ($params['join'] as $key => $value) {
+            foreach ($params['join'] as $key => $item) {
                 if (is_int($key)) {
-                    if (!$this->contain($value, 'table')) {
+                    if (!$this->contain($item, 'table')) {
                         continue;
                     } else {
-                        $key = $value['table'];
+                        $key = $item['table'];
                     }
                 }
 
@@ -116,53 +116,48 @@ trait BaseModelMethods
                     $join .= ' ';
                 }
 
-                if ($this->contain($value, 'on')) {
-                    $joinFields = [];
-
+                if ($this->contain($item, 'on')) {
                     switch (2) {
-                        case count($value['on']['fields']):
-                            $joinFields = $value['on']['fields'];
+                        case isset($item['on']['fields']) && count($item['on']['fields']):
+                            $joinFields = $item['on']['fields'];
                             break;
-                        case count($value['on']):
-                            $joinFields = $value['on'];
+                        case count($item['on']):
+                            $joinFields = $item['on'];
                             break;
                         default:
-                            // Go to the next iteration of the foreach loop
                             continue 2;
                     }
 
-                    // Default using LEFT JOIN
-                    if(!$this->contain($value, 'type')) {
-                        $join .= 'LEFT JOIN';
+                    if (!$this->contain($item, 'type')) {
+                        $join .= 'LEFT JOIN ';
                     } else {
-                        $join .= trim(strtoupper($value['type'])) . ' JOIN ';
+                        $join .= trim(strtoupper($item['type'])) . ' JOIN ';
                     }
 
                     $join .= $key . ' ON ';
 
-                    if($this->contain($value['on'], 'table')) {
-                        $join .= $value['on']['table'];
+                    if ($this->contain($item['on'], 'table')) {
+                        $join .= $item['on']['table'];
                     } else {
                         $join .= $joinTable;
                     }
 
-                    $join .= '.' . $joinFields[0] . '=' . $key . '.' . $joinFields[1];
+                    $join .= '.' . $joinFields[0] . ' = ' . $key . '.' . $joinFields[1];
 
                     $joinTable = $key;
 
-                    if($newWhere) {
-                        if($this->contain($value, 'where')) {
+                    if ($newWhere) {
+                        if($this->contain($item, 'where')) {
                             $newWhere = false;
                         }
 
                         $groupCondition = 'WHERE';
                     } else {
-                        $groupCondition = $value['group_condition'] ? strtoupper($value['group_condition']) : 'AND';
+                        $groupCondition = $this->contain($item, 'group_condition') ? strtoupper($item['group_condition']) : 'AND';
                     }
 
-                    $fields .= $this->createFields($key, $value);
-
-                    $where .= $this->createWhere($key, $value, $groupCondition);
+                    $fields .= $this->createFields($item, $key);
+                    $where .= $this->createWhere($item, $key, $groupCondition);
                 }
             }
         }

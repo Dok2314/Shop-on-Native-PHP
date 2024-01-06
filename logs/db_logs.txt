@@ -1,0 +1,4 @@
+Fault : 06-01-2024 16:23:57 - Ошибка в SQL запросе: INSERT INTO teachers (name,content,gallery_img,img,) VALUES('Daniil','Hello','[\"red.jpg\",\"green.jpg\",\"black.jpg\"]','main.jpg',) - 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ') VALUES('Daniil','Hello','[\"red.jpg\",\"green.jpg\",\"black.jpg\"]','main.jpg'' at line 1
+file /Users/daniilkoversun/Desktop/MyComputer/PHP/Shop/core/base/models/BaseModel.php
+In line 38
+

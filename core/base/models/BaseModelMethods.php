@@ -4,6 +4,8 @@ namespace core\base\models;
 
 trait BaseModelMethods
 {
+    protected array $sqlFunctions = ['NOW()'];
+
     protected function createFields(array $params, string|bool $table = false): string
     {
         $params['fields'] = $this->getValueByKeyFromParams($params, 'fields', ['*']);
@@ -288,30 +290,72 @@ trait BaseModelMethods
             $fields = $_POST;
         }
 
-        $insert_arr = [];
+        $insertArr = [];
 
         if ($fields) {
-            $sql_func = ['NOW()'];
+            $this->resolveInsertFields($fields, $insertArr, $except);
+        }
 
-            foreach ($fields as $fieldName => $fieldValue) {
-                if($except && in_array($fieldName, $except)) {
-                    continue;
-                }
+        if ($files) {
+            $this->resolveInsertFiles($files, $insertArr);
+        }
 
-                $insert_arr['fields'] .= $fieldName . ',';
+        $this->removeLastComma($insertArr);
 
-                if(in_array($fieldValue, $sql_func)) {
-                    $insert_arr['values'] .= $fieldValue . ',';
+        return $insertArr;
+    }
+
+    private function resolveInsertFields($fields, &$insertArr, $except): void
+    {
+        foreach ($fields as $fieldName => $fieldValue) {
+            if ($except && in_array($fieldName, $except)) {
+                continue;
+            }
+
+            if (!$this->contain($insertArr, 'fields')) {
+                $insertArr['fields'] = $fieldName . ', ';
+            } else {
+                $insertArr['fields'] .= $fieldName . ', ';
+            }
+
+            if (in_array($fieldValue, $this->sqlFunctions)) {
+                if (!$this->contain($insertArr, 'values')) {
+                    $insertArr['values'] = $fieldValue . ', ';
                 } else {
-                    $insert_arr['values'] .=  "'" . addslashes($fieldValue) . "',";
+                    $insertArr['values'] .= $fieldValue . ', ';
+                }
+            } else {
+                if (!$this->contain($insertArr, 'values')) {
+                    $insertArr['values'] = "'" . addslashes($fieldValue) . "', ";
+                } else {
+                    $insertArr['values'] .= "'" . addslashes($fieldValue) . "', ";
                 }
             }
         }
+    }
 
-        if($files) {
-            foreach ($files as $fileKey => $fileValue) {
-                
+    private function resolveInsertFiles($files, &$insertArr): void
+    {
+        foreach ($files as $fileKey => $fileValue) {
+
+            if (!$this->contain($insertArr, 'fields')) {
+                $insertArr['fields'] = $fileKey . ', ';
+            } else {
+                $insertArr['fields'] .= $fileKey . ', ';
             }
+
+            if (is_array($fileValue)) {
+                $insertArr['values'] .= "'" . addslashes(json_encode($fileValue)) . "', ";
+            } else {
+                $insertArr['values'] .= "'" . addslashes($fileValue) . "', ";
+            }
+        }
+    }
+
+    private function removeLastComma(&$insertArr): void
+    {
+        foreach ($insertArr as $key => $arr) {
+            $insertArr[$key] = rtrim($arr, ', ');
         }
     }
 }

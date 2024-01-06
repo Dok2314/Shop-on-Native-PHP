@@ -109,10 +109,16 @@ class BaseModel
      */
     final public function add($table, array $params = []): string|int|bool|array
     {
-        $params['fields'] = $this->containAndArray($params, 'fields') ? $params['fields'] : false;
+        $params['fields'] = $this->containAndArray($params, 'fields') ? $params['fields'] : $_POST;
         $params['files'] = $this->containAndArray($params, 'files') ? $params['files'] : false;
-        $params['return_id'] = $this->contain($params, 'return_id');
+
+        if (!$this->contain($params, 'fields') && !$this->contain($params, 'files')) {
+            return false;
+        }
+
         $params['except'] = $this->containAndArray($params, 'except') ? $params['except'] : false;
+
+        $params['return_id'] = $this->contain($params, 'return_id');
 
         $insert_arr = $this->createInsert($params['fields'], $params['files'], $params['except']);
 
@@ -123,5 +129,63 @@ class BaseModel
         }
 
         return false;
+    }
+
+    final public function edit($table, array $params = [])
+    {
+        $params['fields'] = $this->containAndArray($params, 'fields') ? $params['fields'] : $_POST;
+        $params['files'] = $this->containAndArray($params, 'files') ? $params['files'] : false;
+
+        if (!$this->contain($params, 'fields') && !$this->contain($params, 'files')) {
+            return false;
+        }
+
+        $params['except'] = $this->containAndArray($params, 'except') ? $params['except'] : false;
+
+        $where = '';
+
+        if (!$this->contain($params, 'all_rows')) {
+            if($this->contain($params, 'where')) {
+                $where = $this->createWhere($params);
+            } else {
+                $columns = $this->showColumns($table);
+
+                if(!$columns) {
+                    return false;
+                }
+
+                if($this->contain($columns, 'id_row') && $this->contain($params['fields'], $columns['id_row'])) {
+                    $where = 'WHERE ' . $columns['id_row'] . '=' . $params['fields'][$columns['id_row']];
+                    unset($params['fields'][$columns['id_row']]);
+                }
+            }
+        }
+
+        $update = $this->createUpdate($params['fields'], $params['files'], $params['except']);
+
+        $query = "UPDATE $table SET $update $where";
+
+        return $this->query($query, 'u');
+    }
+
+    final public function showColumns($table): array
+    {
+        $query = "SHOW COLUMNS FROM $table";
+
+        $res = $this->query($query);
+
+        $columns = [];
+
+        if ($res) {
+            foreach ($res as $column) {
+                $columns[$column['Field']] = $column;
+
+                if ($column['Key'] === 'PRI') {
+                    $columns['id_row'] = $column['Field'];
+                }
+            }
+        }
+
+        return $columns;
     }
 }

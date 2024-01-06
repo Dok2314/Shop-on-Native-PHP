@@ -19,7 +19,7 @@ trait BaseModelMethods
         return $fields;
     }
 
-    protected function createWhere(array $params, string|bool $table = false, $instruction = 'WHERE')
+    protected function createWhere(array $params, string|bool $table = false, $instruction = 'WHERE'): string
     {
         $table = $table ? $table . '.' : '';
         $where = '';
@@ -96,7 +96,7 @@ trait BaseModelMethods
      * ],
      *
      */
-    protected function createJoin(string $table, array $params = [], bool $newWhere = false)
+    protected function createJoin(string $table, array $params = [], bool $newWhere = false): array
     {
         $fields = '';
         $join = '';
@@ -284,12 +284,8 @@ trait BaseModelMethods
         return $value;
     }
 
-    protected function createInsert($fields, $files, $except)
+    protected function createInsert($fields, $files, $except): array
     {
-        if (!$fields) {
-            $fields = $_POST;
-        }
-
         $insertArr = [];
 
         if ($fields) {
@@ -303,6 +299,41 @@ trait BaseModelMethods
         $this->removeLastComma($insertArr);
 
         return $insertArr;
+    }
+
+    protected function createUpdate($fields, $files, $except)
+    {
+        $update = '';
+
+        if ($fields) {
+            foreach ($fields as $fieldName => $fieldValue) {
+                if ($except && in_array($fieldName, $except)) {
+                    continue;
+                }
+
+                $update .= $fieldName . '=';
+
+                if (in_array($fieldValue, $this->sqlFunctions)) {
+                    $update .= $fieldValue . ', ';
+                } else {
+                    $update .= "'" . addslashes($fieldValue) . "', ";
+                }
+            }
+        }
+
+        if ($files) {
+            foreach ($files as $fileKey => $fileValue) {
+                $update .= $fileKey . '=';
+
+                if(is_array($fileValue)) {
+                    $update .= "'" . addslashes(json_encode($fileValue)) . "', ";
+                } else {
+                    $update .= "'" . addslashes($fileValue) . "', ";
+                }
+            }
+        }
+
+        return rtrim($update, ', ');
     }
 
     private function resolveInsertFields($fields, &$insertArr, $except): void

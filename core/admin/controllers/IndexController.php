@@ -13,13 +13,19 @@ class IndexController extends BaseController
 
         $table = 'teachers';
 
-        $files['gallery_img'] = ['red.jpg', 'green.jpg', 'black.jpg'];
-        $files['img'] = 'main.jpg';
+        $files = [];
 
-        $res = $model->add($table, [
-            'fields' => ['name' => 'Daniil', 'content' => 'Hello'],
-            'files' => $files,
-        ]);
+        $_POST['id'] = 8;
+        $_POST['name'] = '';
+        $_POST['content'] = "<p>Content it's From Oleg</p>";
+
+        $columns = $model->edit($table);
+
+
+//        $res = $model->add($table, [
+////            'fields' => ['name' => 'Nika', 'content' => 'Hello2'],
+//        ]);
+
 
 //        $res = $model->get($table, [
 //            'fields' => ['id', 'name'],

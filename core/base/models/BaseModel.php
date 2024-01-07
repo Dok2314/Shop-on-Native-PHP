@@ -4,9 +4,10 @@ namespace core\base\models;
 
 use core\base\controllers\traits\Singleton;
 use core\base\exceptions\DBException;
+use core\base\interfaces\CrudModel;
 use mysqli;
 
-class BaseModel
+class BaseModel implements CrudModel
 {
     use Singleton, BaseModelMethods;
 

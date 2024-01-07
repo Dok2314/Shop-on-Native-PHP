@@ -101,6 +101,7 @@ trait BaseModelMethods
         $fields = '';
         $join = '';
         $where = '';
+        $tables = '';
 
         if ($this->containAndArray($params, 'join')) {
             $joinTable = $table;
@@ -148,6 +149,8 @@ trait BaseModelMethods
 
                     $joinTable = $key;
 
+                    $tables .= ', ' . trim($joinTable);
+
                     if ($newWhere) {
                         if ($this->contain($item, 'where')) {
                             $newWhere = false;
@@ -164,7 +167,7 @@ trait BaseModelMethods
             }
         }
 
-        return compact('fields', 'join', 'where');
+        return compact('fields', 'join', 'where', 'tables');
     }
 
     protected function createOrder(array $params, string|bool $table = false): string
@@ -315,6 +318,8 @@ trait BaseModelMethods
 
                 if (in_array($fieldValue, $this->sqlFunctions)) {
                     $update .= $fieldValue . ', ';
+                } elseif ($fieldValue === null) {
+                    $update .= "NULL" . ', ';
                 } else {
                     $update .= "'" . addslashes($fieldValue) . "', ";
                 }
@@ -325,7 +330,7 @@ trait BaseModelMethods
             foreach ($files as $fileKey => $fileValue) {
                 $update .= $fileKey . '=';
 
-                if(is_array($fileValue)) {
+                if (is_array($fileValue)) {
                     $update .= "'" . addslashes(json_encode($fileValue)) . "', ";
                 } else {
                     $update .= "'" . addslashes($fileValue) . "', ";

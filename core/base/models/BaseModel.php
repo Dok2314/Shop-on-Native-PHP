@@ -131,7 +131,7 @@ class BaseModel
         return false;
     }
 
-    final public function edit($table, array $params = [])
+    final public function edit($table, array $params = []): array|bool|int|string
     {
         $params['fields'] = $this->containAndArray($params, 'fields') ? $params['fields'] : $_POST;
         $params['files'] = $this->containAndArray($params, 'files') ? $params['files'] : false;
@@ -145,16 +145,16 @@ class BaseModel
         $where = '';
 
         if (!$this->contain($params, 'all_rows')) {
-            if($this->contain($params, 'where')) {
+            if ($this->contain($params, 'where')) {
                 $where = $this->createWhere($params);
             } else {
                 $columns = $this->showColumns($table);
 
-                if(!$columns) {
+                if (!$columns) {
                     return false;
                 }
 
-                if($this->contain($columns, 'id_row') && $this->contain($params['fields'], $columns['id_row'])) {
+                if ($this->contain($columns, 'id_row') && $this->contain($params['fields'], $columns['id_row'])) {
                     $where = 'WHERE ' . $columns['id_row'] . '=' . $params['fields'][$columns['id_row']];
                     unset($params['fields'][$columns['id_row']]);
                 }
@@ -164,6 +164,79 @@ class BaseModel
         $update = $this->createUpdate($params['fields'], $params['files'], $params['except']);
 
         $query = "UPDATE $table SET $update $where";
+
+        return $this->query($query, 'u');
+    }
+
+    /**
+     * @param string $table - Таблица базы данных
+     * @param array $params
+     * 'fields'           => ['id', 'name'],
+     * 'where'            => ['fio' => 'Smirnov', 'name' => 'Oleg', 'surname' => 'Sergeevich'],
+     * 'operand'          => ['=', '<>'],
+     * 'condition'        => ['AND'],
+     * 'join' => [
+     *      'table'             => 'teachers',
+     *      'fields'            => ['id as j_id', 'name as j_name'],
+     *      'type'              => 'left',
+     *      'where'             => ['name' => 'Sasha'],
+     *      'operand'           => ['='],
+     *      'condition'         => ['OR'],
+     *      'on'                => ['id', 'parent_id'],
+     *      'group_condition'   => 'AND'
+     *      ]
+     *  ],
+     *  'join_table1' => [
+     *      'table'     => 'join_table2',
+     *      'fields'    => ['id as j_id', 'name as j_name'],
+     *      'type'      => 'left',
+     *      'where'     => ['name' => 'Sasha'],
+     *      'operand'   => ['='],
+     *      'condition' => ['OR'],
+     *      'on'        => [
+     *      'table'  => 'teachers',
+     *      'fields' => ['id', 'parent_id']
+     *      ]
+     *  ]
+     * @return array|bool|int|string
+     */
+    final public function delete(string $table, array $params = [])
+    {
+        $table = trim($table);
+
+        $where = $this->createWhere($params, $table);
+
+        $columns = $this->showColumns($table);
+
+        if (!$columns) {
+            return false;
+        }
+
+        if ($this->containAndArray($params, 'fields')) {
+            if ($this->contain($columns, 'id_row')) {
+                $key = array_search($columns['id_row'], $params);
+
+                if($key !== false) {
+                    unset($params['fields'][$key]);
+                }
+            }
+
+            $fields = [];
+            foreach ($params['fields'] as $field) {
+                $fields[$field] = $columns[$field]['Default'];
+            }
+
+            $update = $this->createUpdate($fields, false, false);
+
+            $query = "UPDATE $table SET $update $where";
+        } else {
+            $joinArr = $this->createJoin($table, $params);
+            $join = $joinArr['join'];
+            $joinTables = $joinArr['tables'];
+
+            $query = "DELETE $table" . $joinTables . " FROM " . $table . " " . $join . ' ' . $where;
+//            dd($query);
+        }
 
         return $this->query($query, 'u');
     }

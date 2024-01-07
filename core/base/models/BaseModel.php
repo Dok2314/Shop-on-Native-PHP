@@ -235,7 +235,6 @@ class BaseModel
             $joinTables = $joinArr['tables'];
 
             $query = "DELETE $table" . $joinTables . " FROM " . $table . " " . $join . ' ' . $where;
-//            dd($query);
         }
 
         return $this->query($query, 'u');

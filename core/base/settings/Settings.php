@@ -41,6 +41,8 @@ class Settings
         'textarea' => ['content', 'keywords'],
     ];
 
+    private string $defaultTable = 'teachers';
+
     public static function getSettingsByPropName($propName)
     {
         $obj = self::getInstance();

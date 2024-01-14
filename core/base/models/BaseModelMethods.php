@@ -63,7 +63,6 @@ trait BaseModelMethods
         return $where;
     }
 
-
     /**
      * @param string $table
      * @param array $params
@@ -195,6 +194,60 @@ trait BaseModelMethods
         return $orderBy;
     }
 
+    protected function createInsert($fields, $files, $except): array
+    {
+        $insertArr = [];
+
+        if ($fields) {
+            $this->resolveInsertFields($fields, $insertArr, $except);
+        }
+
+        if ($files) {
+            $this->resolveInsertFiles($files, $insertArr);
+        }
+
+        $this->removeLastComma($insertArr);
+
+        return $insertArr;
+    }
+
+    protected function createUpdate($fields, $files, $except): string
+    {
+        $update = '';
+
+        if ($fields) {
+            foreach ($fields as $fieldName => $fieldValue) {
+                if ($except && in_array($fieldName, $except)) {
+                    continue;
+                }
+
+                $update .= $fieldName . '=';
+
+                if (in_array($fieldValue, $this->sqlFunctions)) {
+                    $update .= $fieldValue . ', ';
+                } elseif ($fieldValue === null) {
+                    $update .= "NULL" . ', ';
+                } else {
+                    $update .= "'" . addslashes($fieldValue) . "', ";
+                }
+            }
+        }
+
+        if ($files) {
+            foreach ($files as $fileKey => $fileValue) {
+                $update .= $fileKey . '=';
+
+                if (is_array($fileValue)) {
+                    $update .= "'" . addslashes(json_encode($fileValue)) . "', ";
+                } else {
+                    $update .= "'" . addslashes($fileValue) . "', ";
+                }
+            }
+        }
+
+        return rtrim($update, ', ');
+    }
+
     private function getValueByKeyFromParams(array $params, string $key, $defaultValue = false): array
     {
         return ($this->containAndArray($params, $key)) ? $params[$key] : $defaultValue;
@@ -285,60 +338,6 @@ trait BaseModelMethods
         }
 
         return $value;
-    }
-
-    protected function createInsert($fields, $files, $except): array
-    {
-        $insertArr = [];
-
-        if ($fields) {
-            $this->resolveInsertFields($fields, $insertArr, $except);
-        }
-
-        if ($files) {
-            $this->resolveInsertFiles($files, $insertArr);
-        }
-
-        $this->removeLastComma($insertArr);
-
-        return $insertArr;
-    }
-
-    protected function createUpdate($fields, $files, $except)
-    {
-        $update = '';
-
-        if ($fields) {
-            foreach ($fields as $fieldName => $fieldValue) {
-                if ($except && in_array($fieldName, $except)) {
-                    continue;
-                }
-
-                $update .= $fieldName . '=';
-
-                if (in_array($fieldValue, $this->sqlFunctions)) {
-                    $update .= $fieldValue . ', ';
-                } elseif ($fieldValue === null) {
-                    $update .= "NULL" . ', ';
-                } else {
-                    $update .= "'" . addslashes($fieldValue) . "', ";
-                }
-            }
-        }
-
-        if ($files) {
-            foreach ($files as $fileKey => $fileValue) {
-                $update .= $fileKey . '=';
-
-                if (is_array($fileValue)) {
-                    $update .= "'" . addslashes(json_encode($fileValue)) . "', ";
-                } else {
-                    $update .= "'" . addslashes($fileValue) . "', ";
-                }
-            }
-        }
-
-        return rtrim($update, ', ');
     }
 
     private function resolveInsertFields($fields, &$insertArr, $except): void

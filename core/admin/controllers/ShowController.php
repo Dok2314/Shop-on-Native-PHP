@@ -8,6 +8,7 @@ class ShowController extends BaseAdmin
     {
         $this->execBase();
         $this->createTableData();
+        $this->createData();
 
         dd($this->columns, $this->table);
     }

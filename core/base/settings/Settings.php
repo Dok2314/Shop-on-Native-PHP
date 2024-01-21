@@ -68,7 +68,7 @@ class Settings
         return $props;
     }
 
-    protected function arrayMergeRecursive(...$props)
+    public function arrayMergeRecursive(...$props)
     {
         $baseProps = array_shift($props);
 

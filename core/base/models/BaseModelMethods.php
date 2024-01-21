@@ -269,7 +269,11 @@ trait BaseModelMethods
             $orderDirection = strtoupper($params['order_direction'][$directCount]);
             $directCount++;
         } else {
-            $orderDirection = $params['order_direction'][$directCount - 1];
+            if ($directCount !== 0) {
+                $orderDirection = $params['order_direction'][$directCount - 1];
+            } else {
+                $orderDirection = 'ASC';
+            }
         }
 
         return $orderDirection;
